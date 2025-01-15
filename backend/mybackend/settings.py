@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -73,17 +75,20 @@ WSGI_APPLICATION = 'mybackend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'tododb',  # Name of the database
-        'USER': 'stanley',  # Role name
-        'PASSWORD': 'sevendiamonds',  # Role password
-        'HOST': '127.0.0.1',  # Use localhost IP
-        'PORT': '5432',  # Default PostgreSQL port
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
 
+
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'fallback_secret_key')
 
 
 
