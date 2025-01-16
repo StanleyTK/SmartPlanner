@@ -39,6 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'users',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -75,21 +78,20 @@ WSGI_APPLICATION = 'mybackend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
+        'NAME': config('DB_NAME', default='tododb'),
+        'USER': config('DB_USER', default='stanley'),
+        'PASSWORD': config('DB_PASSWORD', default='sevendiamonds'),
         'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('DB_PORT', default='5432'),
     }
 }
 
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'fallback_secret_key')
 
+AUTH_USER_MODEL = 'users.CustomUser'
 
 
 # Password validation
