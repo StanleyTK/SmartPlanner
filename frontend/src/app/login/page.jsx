@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import '../../styles/globals.css';
+
 
 export default function Login() {
   const router = useRouter();
@@ -95,6 +97,17 @@ export default function Login() {
             Login
           </button>
         </form>
+        <div className="text-center mt-4">
+          <p className="text-gray-400">
+            Don't have an account?{" "}
+            <button
+              onClick={() => router.push("/signup")}
+              className="text-blue-500 hover:underline"
+            >
+              Sign up
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );
