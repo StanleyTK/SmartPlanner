@@ -1,20 +1,25 @@
-name: Deploy Frontend to GitHub Pages
+name: pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 permissions:
-  contents: write  # Grant write permissions to allow pushing to the repo
+  contents: read      # Allows reading the repo
+  pages: write        # Allows writing to gh-pages
+  id-token: write     # Required for OpenID Connect (needed by deploy-pages)
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Check out code
         uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16  # or 18, etc., matching your project’s needs
 
       - name: Install dependencies
         run: |
@@ -24,15 +29,25 @@ jobs:
       - name: Build project
         run: |
           cd frontend
+          # "predeploy" should output your static site into ./frontend/out
           npm run predeploy
 
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          # IMPORTANT: Only upload your built frontend folder,
+          # not the entire repo.
+          path: ./frontend/out
+
+  deploy:
+    # This job depends on the build job
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write  # needed by actions/deploy-pages
+    steps:
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: actions/deploy-pages@v1
         with:
           branch: gh-pages
-          folder: frontend/out
-          clean: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-          exclude_assets: 'backend/**'  # Exclude backend folder
-
-
