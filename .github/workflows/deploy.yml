@@ -22,7 +22,7 @@ jobs:
         run: |
           cd frontend
           npm run predeploy
-          ls -la out  # Check if the output directory exists
+          ls -la frontend/out  # Ensure the output directory exists
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
@@ -30,4 +30,4 @@ jobs:
           branch: gh-pages
           folder: frontend/out  # Ensure correct output folder
           clean: true
-          token: ${{ secrets.GH_PAGES_DEPLOY_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
