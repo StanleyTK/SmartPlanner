@@ -1,0 +1,6 @@
+Django==4.2.18
+psycopg2-binary
+python-decouple
+djangorestframework
+django-cors-headers
+gunicorn
