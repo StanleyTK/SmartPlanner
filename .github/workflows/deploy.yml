@@ -33,6 +33,6 @@ jobs:
           folder: frontend/out
           clean: true
           token: ${{ secrets.GITHUB_TOKEN }}
-          exclude_assets: 'backend/venv/**'
+          exclude_assets: 'backend/**'  # Exclude backend folder
 
 
