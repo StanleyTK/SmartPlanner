@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'export',  // Enable static export for deployment
+    output: process.env.NEXT_PUBLIC_DEPLOY_TARGET === 'gh-pages' ? 'export' : undefined,
     images: {
-      unoptimized: true,  // Required for exporting images in static mode
+      unoptimized: process.env.NEXT_PUBLIC_DEPLOY_TARGET === 'gh-pages',  // Required for exporting images
     },
-    basePath: '/MyCalendar',  // Set this to your GitHub repo name
-    assetPrefix: '/MyCalendar/',  // Prefix for static assets
+    basePath: process.env.NEXT_PUBLIC_DEPLOY_TARGET === 'gh-pages' ? '/MyCalendar' : '',
+    assetPrefix: process.env.NEXT_PUBLIC_DEPLOY_TARGET === 'gh-pages' ? '/MyCalendar/' : '',
   };
   
   export default nextConfig;
