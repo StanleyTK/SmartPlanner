@@ -29,3 +29,4 @@ jobs:
           branch: gh-pages
           folder: frontend/out
           clean: true
+          token: ${{ secrets.GITHUB_TOKEN }}

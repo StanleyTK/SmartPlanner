@@ -6,7 +6,6 @@ const nextConfig = {
     },
     basePath: process.env.NEXT_PUBLIC_DEPLOY_TARGET === 'gh-pages' ? '/MyCalendar' : '',
     assetPrefix: process.env.NEXT_PUBLIC_DEPLOY_TARGET === 'gh-pages' ? '/MyCalendar/' : '',
-  };
-  
-  export default nextConfig;
-  
+};
+
+export default nextConfig;
