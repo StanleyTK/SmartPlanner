@@ -30,4 +30,4 @@ jobs:
           branch: gh-pages
           folder: frontend/out  # Ensure correct output folder
           clean: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAGES_DEPLOY_TOKEN }}
