@@ -32,7 +32,7 @@ jobs:
           npm run predeploy  # Ensure the output goes to ./frontend/out
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./frontend/out
 
