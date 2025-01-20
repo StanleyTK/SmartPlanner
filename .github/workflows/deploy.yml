@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16  # or 18, etc., matching your project’s needs
+          node-version: 20 # or 18, etc., matching your project’s needs
 
       - name: Install dependencies
         run: |
