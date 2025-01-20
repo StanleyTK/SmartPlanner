@@ -1,4 +1,4 @@
-name: pages
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
-          node-version: 20 # or 18, etc., matching your project’s needs
+          node-version: 20 # Ensure compatibility with Next.js
 
       - name: Install dependencies
         run: |
@@ -29,25 +29,21 @@ jobs:
       - name: Build project
         run: |
           cd frontend
-          # "predeploy" should output your static site into ./frontend/out
-          npm run predeploy
+          npm run predeploy  # Ensure the output goes to ./frontend/out
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          # IMPORTANT: Only upload your built frontend folder,
-          # not the entire repo.
           path: ./frontend/out
 
   deploy:
-    # This job depends on the build job
     needs: build
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages  # This fixes the "Missing environment" error
     permissions:
       pages: write
-      id-token: write  # needed by actions/deploy-pages
+      id-token: write  # Required for deploy-pages action
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
-        with:
-          branch: gh-pages
