@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import '../../styles/globals.css';
 
-
 export default function Login() {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -17,7 +16,7 @@ export default function Login() {
   useEffect(() => {
     const token = localStorage.getItem("userToken");
     if (token) {
-      router.push("/todo"); // Redirect to /todo if token exists
+      router.push("/calendar"); // Redirect to /calendar if token exists
     }
   }, [router]);
 
@@ -32,7 +31,7 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/users/login/", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/login/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,7 +45,7 @@ export default function Login() {
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem("userToken", data.token); // Assuming the API returns a token
-        router.push("/todo"); // Redirect to the dashboard on successful login
+        router.push("/calendar"); // Redirect to the dashboard on successful login
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Invalid username or password");
@@ -96,18 +95,18 @@ export default function Login() {
           >
             Login
           </button>
+          <div className="text-center mt-4">
+            <p className="text-gray-400">
+              Don't have an account?{" "}
+              <button
+                onClick={() => router.push("/signup")}
+                className="text-blue-500 hover:underline"
+              >
+                Sign up
+              </button>
+            </p>
+          </div>
         </form>
-        <div className="text-center mt-4">
-          <p className="text-gray-400">
-            Don't have an account?{" "}
-            <button
-              onClick={() => router.push("/signup")}
-              className="text-blue-500 hover:underline"
-            >
-              Sign up
-            </button>
-          </p>
-        </div>
       </div>
     </div>
   );

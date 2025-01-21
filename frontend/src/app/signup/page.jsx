@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import '../../styles/globals.css';
-
 
 export default function Signup() {
   const router = useRouter();
@@ -16,6 +15,14 @@ export default function Signup() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Check for token on component mount
+  useEffect(() => {
+    const token = localStorage.getItem("userToken");
+    if (token) {
+      router.push("/calendar"); // Redirect to /calendar if token exists
+    }
+  }, [router]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -27,7 +34,7 @@ export default function Signup() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/users/register/", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/register/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

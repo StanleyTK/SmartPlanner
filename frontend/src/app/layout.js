@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'To-Do App',
+  title: 'SmartPlanner',
 }
 
 export default function RootLayout({ children }) {
