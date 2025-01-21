@@ -28,7 +28,7 @@ jobs:
       - name: Build project
         run: |
           cd frontend
-          npm run predeploy  # Ensure output to ./frontend/out
+          npm run predeploy
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
