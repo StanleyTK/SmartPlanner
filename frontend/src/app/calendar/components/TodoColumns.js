@@ -141,74 +141,70 @@ export default function TodoColumns({
           );
         })}
       </div>
+        {/* POPOVER (no backdrop) */}
+        {showPopover && popoverTask && (
+          <div
+            ref={popoverRef}
+            className="
+              fixed 
+              z-50 
+              bg-gray-900 
+              text-gray-200 
+              rounded-lg 
+              shadow-lg 
+              p-4
+              w-[300px]
+              max-h-[15rem]  /* ~10 lines or so */
+              overflow-y-auto
+              border border-gray-700
+            "
+            style={{
+              top: popoverPos.y,
+              left: popoverPos.x,
+            }}
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-lg font-semibold text-gray-100">
+                {popoverTask.title}
+              </h2>
+              <button
+                onClick={closePopover}
+                className="text-gray-500 hover:text-gray-300 text-xl"
+              >
+                &times;
+              </button>
+            </div>
 
-      {/* POPOVER (no backdrop) */}
-      {showPopover && popoverTask && (
-        <div
-          ref={popoverRef}
-          className="
-            fixed 
-            z-50 
-            bg-gray-800 
-            text-gray-200 
-            rounded-lg 
-            shadow-xl 
-            p-4
-            w-[300px]
-            max-h-[15rem]  /* ~10 lines or so */
-            overflow-y-auto
-          "
-          style={{
-            top: popoverPos.y,
-            left: popoverPos.x,
-          }}
-        >
-          {/* Header */}
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-lg font-semibold text-blue-300">
-              {popoverTask.title}
-            </h2>
-            <button
-              onClick={closePopover}
-              className="text-gray-400 hover:text-gray-200 text-xl"
-            >
-              &times;
-            </button>
+            {/* Date/time info */}
+            <p className="text-sm text-gray-500 mb-2">
+              {format(selectedDate, "PPPP")}
+            </p>
+
+            {/* Description */}
+            <p className="text-sm whitespace-pre-wrap mb-4">
+              {popoverTask.description || "No description."}
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={handleDelete}
+                className="text-red-400 hover:text-red-500 text-base font-medium"
+              >
+                Delete
+              </button>
+              <button
+                onClick={closePopover}
+                className="text-gray-400 hover:text-gray-200 text-base font-medium"
+              >
+                Close
+              </button>
+            </div>
           </div>
+        )}
 
-          {/* Date/time info */}
-          <p className="text-sm text-gray-400 mb-2">
-            {format(selectedDate, "PPPP")}
-          </p>
 
-          {/* Description */}
-          <p className="text-sm whitespace-pre-wrap mb-4">
-            {popoverTask.description || "No description."}
-          </p>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-2">
-            <button
-              onClick={handleDelete}
-              className="
-                bg-red-600 hover:bg-red-700
-                text-white rounded-md px-3 py-1
-              "
-            >
-              Delete
-            </button>
-            <button
-              onClick={closePopover}
-              className="
-                bg-gray-700 hover:bg-gray-600
-                text-white rounded-md px-3 py-1
-              "
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }
