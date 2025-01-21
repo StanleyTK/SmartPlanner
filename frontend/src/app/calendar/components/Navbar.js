@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
+import AddTask from "./AddTask"; // new import
 
-export default function Navbar({ 
-  handleLogout, 
-  router, 
-  currentMonth, 
-  setCurrentMonth, 
-  selectedDate, 
-  setSelectedDate 
+export default function Navbar({
+  handleLogout,
+  router,
+  currentMonth,
+  setCurrentMonth,
+  selectedDate,
+  setSelectedDate,
+  addTaskToSelectedDay,
 }) {
   // Calendar popover
   const [showCalendar, setShowCalendar] = useState(false);
@@ -17,12 +19,14 @@ export default function Navbar({
   // Settings popover
   const [showSettings, setShowSettings] = useState(false);
 
-  // Basic settings states
+  // Add Task popover (just track hover state)
+  const [showAddTask, setShowAddTask] = useState(false);
+
+  // Basic settings
   const [darkMode, setDarkMode] = useState(true);
   const [notificationEnabled, setNotificationEnabled] = useState(false);
   const [userName, setUserName] = useState("SETTINGS DONT WORK");
 
-  // Load saved settings from localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem("darkMode");
     if (savedTheme !== null) setDarkMode(savedTheme === "true");
@@ -34,7 +38,6 @@ export default function Navbar({
     if (savedName !== null) setUserName(savedName);
   }, []);
 
-  // Save settings and reload page
   const handleSaveSettings = () => {
     localStorage.setItem("darkMode", darkMode);
     localStorage.setItem("notifications", notificationEnabled);
@@ -51,9 +54,10 @@ export default function Navbar({
           {/* Calendar Popover */}
           <div
             className="
-              relative inline-block overflow-visible
-              before:absolute before:-top-6 before:-bottom-6 
-              before:-left-6 before:-right-6 before:content-[''] 
+              relative inline-block
+              overflow-visible
+              before:absolute before:-top-6 before:-bottom-6
+              before:-left-6 before:-right-6 before:content-['']
               before:bg-transparent before:pointer-events-auto before:z-0
             "
             onMouseEnter={() => setShowCalendar(true)}
@@ -82,6 +86,14 @@ export default function Navbar({
               />
             </div>
           </div>
+
+          {/* Add Task: separate component */}
+          <AddTask
+            isActive={showAddTask}
+            onMouseEnter={() => setShowAddTask(true)}
+            onMouseLeave={() => setShowAddTask(false)}
+            onAddTask={addTaskToSelectedDay}
+          />
         </div>
 
         <div className="flex items-center space-x-12">
@@ -89,8 +101,8 @@ export default function Navbar({
           <div
             className="
               relative inline-block overflow-visible
-              before:absolute before:-top-6 before:-bottom-6 
-              before:-left-6 before:-right-6 before:content-[''] 
+              before:absolute before:-top-6 before:-bottom-6
+              before:-left-6 before:-right-6 before:content-['']
               before:bg-transparent before:pointer-events-auto before:z-0
             "
             onMouseEnter={() => setShowSettings(true)}
@@ -139,7 +151,9 @@ export default function Navbar({
                     onChange={() => setDarkMode(!darkMode)}
                   />
                   <div className="w-11 h-6 bg-gray-400 rounded-full peer dark:bg-gray-700 peer-checked:bg-blue-600 transition-colors"></div>
-                  <span className="ml-2 text-sm">{darkMode ? "On" : "Off"}</span>
+                  <span className="ml-2 text-sm">
+                    {darkMode ? "On" : "Off"}
+                  </span>
                 </label>
               </div>
 
@@ -154,14 +168,20 @@ export default function Navbar({
                     onChange={() => setNotificationEnabled(!notificationEnabled)}
                   />
                   <div className="w-11 h-6 bg-gray-400 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
-                  <span className="ml-2 text-sm">{notificationEnabled ? "On" : "Off"}</span>
+                  <span className="ml-2 text-sm">
+                    {notificationEnabled ? "On" : "Off"}
+                  </span>
                 </label>
               </div>
 
               {/* Save Changes Button */}
               <button
                 onClick={handleSaveSettings}
-                className="w-full py-2 mt-2 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition"
+                className="
+                  w-full py-2 mt-2 bg-blue-600
+                  text-white font-semibold
+                  rounded-full shadow-lg hover:bg-blue-700 transition
+                "
               >
                 LOL THIS DOESNT DO ANYTHING
               </button>
@@ -169,8 +189,8 @@ export default function Navbar({
           </div>
 
           {/* Log Out Button */}
-          <button 
-            onClick={handleLogout} 
+          <button
+            onClick={handleLogout}
             className="text-red-400 hover:text-red-600 transition"
           >
             Log Out

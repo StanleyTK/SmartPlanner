@@ -1,3 +1,17 @@
+/* globals.css */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Make the root layers fill the screen with #111827, same as bg-gray-950 */
+html,
+body,
+#__next {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #111827; /* or the color that matches bg-gray-950 */
+  color: #d1d5db;           /* optional default text color */
+  overflow-x: hidden;       /* prevents horizontal scroll that might show white space */
+}

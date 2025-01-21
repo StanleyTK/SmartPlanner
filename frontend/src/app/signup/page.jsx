@@ -14,12 +14,15 @@ export default function Signup() {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(true); // Loading state
 
   // Check for token on component mount
   useEffect(() => {
     const token = localStorage.getItem("userToken");
     if (token) {
       router.push("/calendar"); // Redirect to /calendar if token exists
+    } else {
+      setLoading(false); // Stop loading once check is complete
     }
   }, [router]);
 
@@ -32,6 +35,7 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // Show loading during signup submission
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/register/`, {
@@ -56,8 +60,17 @@ export default function Signup() {
     } catch (err) {
       setError("An error occurred. Please try again.");
       setSuccess("");
+    } finally {
+      setLoading(false); // Stop loading after submission
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900">

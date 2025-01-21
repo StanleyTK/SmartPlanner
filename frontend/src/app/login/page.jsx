@@ -11,12 +11,15 @@ export default function Login() {
     password: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true); // State to track loading
 
   // Check for token on component mount
   useEffect(() => {
     const token = localStorage.getItem("userToken");
     if (token) {
-      router.push("/calendar"); // Redirect to /calendar if token exists
+      router.push("/calendar");
+    } else {
+      setLoading(false); // Stop loading once check is complete
     }
   }, [router]);
 
@@ -29,6 +32,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // Show loading while logging in
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/login/`, {
@@ -45,15 +49,24 @@ export default function Login() {
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem("userToken", data.token); // Assuming the API returns a token
-        router.push("/calendar"); // Redirect to the dashboard on successful login
+        router.push("/calendar"); // Redirect to the calendar page on successful login
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Invalid username or password");
       }
     } catch (err) {
       setError("An error occurred while logging in. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
