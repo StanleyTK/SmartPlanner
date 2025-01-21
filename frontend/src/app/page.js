@@ -11,7 +11,7 @@ export default function Home() {
     if (token) {
       router.push("/calendar");
     } else {
-      router.push("/login");
+      router.push("/calendar");
     }
   };
  
@@ -36,7 +36,7 @@ export default function Home() {
           className="relative px-10 py-4 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white text-lg font-bold shadow-lg hover:shadow-2xl transform transition hover:scale-110 duration-300 ease-in-out"
           onClick={handleLogin}
         >
-          🚀 Get Started
+          Get Started
           <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-700 to-blue-700 blur-xl opacity-30 animate-pulse"></div>
         </button>
       </div>
