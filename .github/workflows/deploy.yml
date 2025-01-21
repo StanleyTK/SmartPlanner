@@ -1,13 +1,12 @@
-name: Deploy to GitHub Pages
-
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:  # Allows manual runs if needed
 
 permissions:
-  contents: read      # Allows reading the repo
-  pages: write        # Allows writing to gh-pages
-  id-token: write     # Required for OpenID Connect (needed by deploy-pages)
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build:
@@ -19,7 +18,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
-          node-version: 20 # Ensure compatibility with Next.js
+          node-version: 20
 
       - name: Install dependencies
         run: |
@@ -29,22 +28,21 @@ jobs:
       - name: Build project
         run: |
           cd frontend
-          npm run predeploy  # Ensure the output goes to ./frontend/out
+          npm run predeploy  # Ensure output to ./frontend/out
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
           path: ./frontend/out
-      
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: github-pages  # This fixes the "Missing environment" error
+      name: github-pages
     permissions:
       pages: write
-      id-token: write  # Required for deploy-pages action
+      id-token: write
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
