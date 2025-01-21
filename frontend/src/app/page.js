@@ -14,7 +14,7 @@ export default function Home() {
       router.push("/login");
     }
   };
-
+ 
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-950 text-gray-300">
       
