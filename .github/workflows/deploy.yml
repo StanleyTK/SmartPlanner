@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 20 # Ensure compatibility with Next.js
 
       - name: Install dependencies
         run: |
@@ -29,20 +29,22 @@ jobs:
       - name: Build project
         run: |
           cd frontend
-          npm run predeploy  # Ensure the output is in ./frontend/out
+          npm run predeploy  # Ensure the output goes to ./frontend/out
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
           path: ./frontend/out
       
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    # REMOVED the environment: name: github-pages to avoid GitHub's auto-build job
+    environment:
+      name: github-pages  # This fixes the "Missing environment" error
     permissions:
       pages: write
-      id-token: write
+      id-token: write  # Required for deploy-pages action
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
