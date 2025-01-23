@@ -8,12 +8,11 @@ export default function Home() {
 
   const handleLogin = () => {
     const token = localStorage.getItem("userToken");
-    router.push("/calendar");
-    // if (token) {
-    //   router.push("/calendar");
-    // } else {
-    //   router.push("/login");
-    // }
+    if (token) {
+      router.push("/calendar");
+    } else {
+      router.push("/login");
+    }
   };
  
   return (

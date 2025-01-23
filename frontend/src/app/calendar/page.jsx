@@ -22,15 +22,14 @@ export default function Todo() {
   useEffect(() => {
     const initialize = () => {
       const token = localStorage.getItem("userToken");
-      // if (!token) {
-      //   router.push("/login");
-      // } else {
-      //   updateWeekDays(selectedDate);
-      //   setIsLoading(false);
-      // }
+      if (!token) {
+        router.push("/login");
+      } else {
+        updateWeekDays(selectedDate);
+        setIsLoading(false);
+      }
 
-      updateWeekDays(selectedDate);
-      setIsLoading(false);
+
     };
     initialize();
   }, [router, selectedDate]);
