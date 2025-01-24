@@ -15,7 +15,10 @@ export default function Footer() {
         rounded-lg
       "
     >
-      <p className="text-sm">Note: Project is under working progress. For demo purposes, login is disabled.</p>
+      <p className="text-sm">
+        Note: Project is under working progress. For demo purposes, login is
+        disabled.
+      </p>
     </footer>
   );
 }

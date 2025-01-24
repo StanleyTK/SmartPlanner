@@ -132,7 +132,7 @@ class GetTasksView(APIView):
 
 
 class GetTasksByDateView(APIView):
-    def get(self, request):
+    def post(self, request):
         authorization_token = request.headers.get("Authorization")
 
         if not authorization_token:

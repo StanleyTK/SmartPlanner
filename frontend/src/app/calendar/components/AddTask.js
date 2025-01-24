@@ -38,7 +38,11 @@ export default function AddTask({ isActive, onMouseEnter, onMouseLeave, onAddTas
           bg-gray-900 shadow-lg rounded-lg p-5 w-[400px]
           border border-gray-700
           transition-all duration-300 z-20
-          ${isActive ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"}
+          ${
+            isActive
+              ? "opacity-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 -translate-y-2 pointer-events-none"
+          }
         `}
       >
         <h2 className="text-lg font-semibold text-gray-100 text-center mb-3">

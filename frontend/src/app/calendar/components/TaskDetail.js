@@ -13,9 +13,7 @@ export default function TaskDetail({ task, onClose, onDelete }) {
     >
       {/* Modal content */}
       <div className="bg-gray-800 rounded-lg shadow-lg p-6 w-[400px]">
-        <h2 className="text-2xl font-bold mb-3 text-blue-400">
-          {task.title}
-        </h2>
+        <h2 className="text-2xl font-bold mb-3 text-blue-400">{task.title}</h2>
         <p className="text-gray-300 mb-6 whitespace-pre-wrap">
           {task.description || "No description provided."}
         </p>

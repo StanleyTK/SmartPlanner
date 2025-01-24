@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { format, isSameDay } from "date-fns";
+import { parseISO, format, isSameDay } from "date-fns";
+
 
 export default function TodoColumns({
   weekDays,
@@ -25,32 +26,35 @@ export default function TodoColumns({
     setPopoverIndex(null);
   };
 
-  // Click handler for tasks
+
   const handleClickTask = (task, idx, e) => {
-    // 1) Which task was clicked
+    // 1) Correctly parse the task's date using parseISO to avoid timezone issues
+    const taskDate = parseISO(task.date_created);
+    setSelectedDate(taskDate);
+  
+    // 2) Set popover task and index
     setPopoverTask(task);
     setPopoverIndex(idx);
-
-    // 2) Measure the clicked element
+  
+    // 3) Measure the clicked element
     const rect = e.currentTarget.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const popoverWidth = 300; // approximate width of popover
-
+  
     let side = "right";
     if (rect.right + popoverWidth > viewportWidth) {
       side = "left";
     }
-
+  
     // Position the popover near the task
-    const x = side === "right"
-      ? rect.right + 10
-      : rect.left - popoverWidth - 10;
+    const x = side === "right" ? rect.right + 10 : rect.left - popoverWidth - 10;
     const y = rect.top + window.scrollY;
-
+  
     setPopoverPos({ x, y, side });
     setShowPopover(true);
   };
-
+  
+  
   // Delete button
   const handleDelete = () => {
     if (popoverIndex != null) {
@@ -64,7 +68,6 @@ export default function TodoColumns({
     if (!showPopover) return;
 
     function handleOutsideClick(e) {
-      // If popoverRef is assigned and click is outside, close
       if (popoverRef.current && !popoverRef.current.contains(e.target)) {
         closePopover();
       }
@@ -141,70 +144,69 @@ export default function TodoColumns({
           );
         })}
       </div>
-        {/* POPOVER (no backdrop) */}
-        {showPopover && popoverTask && (
-          <div
-            ref={popoverRef}
-            className="
-              fixed 
-              z-50 
-              bg-gray-900 
-              text-gray-200 
-              rounded-lg 
-              shadow-lg 
-              p-4
-              w-[300px]
-              max-h-[15rem]  /* ~10 lines or so */
-              overflow-y-auto
-              border border-gray-700
-            "
-            style={{
-              top: popoverPos.y,
-              left: popoverPos.x,
-            }}
-          >
-            {/* Header */}
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="text-lg font-semibold text-gray-100">
-                {popoverTask.title}
-              </h2>
-              <button
-                onClick={closePopover}
-                className="text-gray-500 hover:text-gray-300 text-xl"
-              >
-                &times;
-              </button>
-            </div>
 
-            {/* Date/time info */}
-            <p className="text-sm text-gray-500 mb-2">
-              {format(selectedDate, "PPPP")}
-            </p>
-
-            {/* Description */}
-            <p className="text-sm whitespace-pre-wrap mb-4">
-              {popoverTask.description || "No description."}
-            </p>
-
-            {/* Action Buttons */}
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={handleDelete}
-                className="text-red-400 hover:text-red-500 text-base font-medium"
-              >
-                Delete
-              </button>
-              <button
-                onClick={closePopover}
-                className="text-gray-400 hover:text-gray-200 text-base font-medium"
-              >
-                Close
-              </button>
-            </div>
+      {/* POPOVER (no backdrop) */}
+      {showPopover && popoverTask && (
+        <div
+          ref={popoverRef}
+          className="
+            fixed 
+            z-50 
+            bg-gray-900 
+            text-gray-200 
+            rounded-lg 
+            shadow-lg 
+            p-4
+            w-[300px]
+            max-h-[15rem] 
+            overflow-y-auto
+            border border-gray-700
+          "
+          style={{
+            top: popoverPos.y,
+            left: popoverPos.x,
+          }}
+        >
+          {/* Header */}
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-lg font-semibold text-gray-100">
+              {popoverTask.title}
+            </h2>
+            <button
+              onClick={closePopover}
+              className="text-gray-500 hover:text-gray-300 text-xl"
+            >
+              &times;
+            </button>
           </div>
-        )}
 
+          {/* Date/time info */}
+          <p className="text-sm text-gray-500 mb-2">
+            {format(selectedDate, "PPPP")}
+          </p>
 
+          {/* Description */}
+          <p className="text-sm whitespace-pre-wrap mb-4">
+            {popoverTask.description || "No description."}
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-4">
+            <button
+              onClick={handleDelete}
+              className="text-red-400 hover:text-red-500 text-base font-medium"
+            >
+              Delete
+            </button>
+            <button
+              onClick={closePopover}
+              className="text-gray-400 hover:text-gray-200 text-base font-medium"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
