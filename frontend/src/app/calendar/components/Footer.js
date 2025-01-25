@@ -16,8 +16,7 @@ export default function Footer() {
       "
     >
       <p className="text-sm">
-        Note: Project is under working progress. For demo purposes, login is
-        disabled.
+        &copy; {new Date().getFullYear()} SmartPlanner. All rights reserved.
       </p>
     </footer>
   );

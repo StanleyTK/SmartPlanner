@@ -5,12 +5,16 @@ import { useState } from "react";
 export default function AddTask({ isActive, onMouseEnter, onMouseLeave, onAddTask }) {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
+  const [priority, setPriority] = useState(1); // 1=Low, 2=Medium, 3=High
 
   const handleSubmit = () => {
+    // We also check if the user typed something (title.trim())
+    // and if it's <= 50 chars (should be guaranteed by maxLength)
     if (title.trim()) {
-      onAddTask({ title, description: desc });
+      onAddTask({ title, description: desc, priority });
       setTitle("");
       setDesc("");
+      setPriority(1);
     }
   };
 
@@ -26,12 +30,11 @@ export default function AddTask({ isActive, onMouseEnter, onMouseLeave, onAddTas
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* The "Add Task" button */}
       <button className="relative z-10 text-gray-300 hover:text-gray-100 transition font-medium">
         Add Task
       </button>
 
-      {/* Popover: Task form */}
+      {/* Popover */}
       <div
         className={`
           absolute left-1/2 top-full mt-3 transform -translate-x-1/2
@@ -49,44 +52,54 @@ export default function AddTask({ isActive, onMouseEnter, onMouseLeave, onAddTas
           Add a New Task
         </h2>
 
-        {/* Title */}
         <label className="block mb-1 font-semibold text-sm text-gray-400">
-          Title
+          Title (max 50 chars)
         </label>
         <input
           type="text"
+          maxLength={50}
           placeholder="Task Title..."
-          className="w-full p-3 rounded bg-gray-800 text-gray-300 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-3 rounded bg-gray-800 text-gray-300 border border-gray-600
+                     focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
 
-        {/* Description */}
         <label className="block mt-4 mb-1 font-semibold text-sm text-gray-400">
           Description
         </label>
         <textarea
           placeholder="Enter more details..."
-          className="w-full p-3 h-24 rounded bg-gray-800 text-gray-300 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-3 h-24 rounded bg-gray-800 text-gray-300 border border-gray-600
+                     focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
         />
 
-        {/* Action Buttons */}
+        <label className="block mt-4 mb-1 font-semibold text-sm text-gray-400">
+          Priority
+        </label>
+        <select
+          value={priority}
+          onChange={(e) => setPriority(parseInt(e.target.value))}
+          className="w-full p-3 rounded bg-gray-800 text-gray-300 border border-gray-600
+                     focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value={1}>Low</option>
+          <option value={2}>Medium</option>
+          <option value={3}>High</option>
+        </select>
+
         <div className="flex justify-end space-x-4 mt-4">
           <button
             onClick={handleSubmit}
-            className="
-              text-blue-400 hover:text-blue-300 text-base font-medium transition
-            "
+            className="text-blue-400 hover:text-blue-300 text-base font-medium transition"
           >
             Add
           </button>
           <button
             onClick={onMouseLeave}
-            className="
-              text-gray-400 hover:text-gray-200 text-base font-medium transition
-            "
+            className="text-gray-400 hover:text-gray-200 text-base font-medium transition"
           >
             Cancel
           </button>

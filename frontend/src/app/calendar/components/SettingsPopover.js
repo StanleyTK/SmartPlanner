@@ -1,117 +1,125 @@
 "use client";
 
-import { 
-  format, 
-  subMonths, 
-  addMonths, 
-  subYears, 
-  addYears, 
-  getDaysInMonth, 
-  startOfMonth, 
-  getDay 
-} from "date-fns";
+import { useState } from "react";
+import Notification from "./Notification";
 
-export default function Sidebar({ 
-  currentMonth, 
-  setCurrentMonth, 
-  selectedDate, 
-  setSelectedDate 
-}) {
+export default function SettingsPopover({ showSettings }) {
+  const [darkMode, setDarkMode] = useState(true);
+  const [notificationEnabled, setNotificationEnabled] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [notification, setNotification] = useState(null);
 
-  const handleMonthChange = (action) => {
-    setCurrentMonth(
-      action === 'prev' 
-        ? subMonths(currentMonth, 1) 
-        : addMonths(currentMonth, 1)
-    );
-  };
+  async function handleSaveSettings() {
+    try {
+      const userToken = localStorage.getItem("userToken");
 
-  const handleYearChange = (action) => {
-    setCurrentMonth(
-      action === 'prev' 
-        ? subYears(currentMonth, 1) 
-        : addYears(currentMonth, 1)
-    );
-  };
+      // Store values locally
+      localStorage.setItem("darkMode", darkMode);
+      localStorage.setItem("notifications", notificationEnabled);
+      localStorage.setItem("userName", userName);
+      localStorage.setItem("email", email);
+      localStorage.setItem("name", name);
+      localStorage.setItem("password", password);
 
-  const handleDateClick = (day) => {
-    setSelectedDate(
-      new Date(
-        currentMonth.getFullYear(), 
-        currentMonth.getMonth(), 
-        day
-      )
-    );
-  };
+      // Call API to update user details
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/update/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: userToken,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            name: name,
+            userName: userName,
+          }),
+        }
+      );
 
-  const firstDayOfMonth = getDay(startOfMonth(currentMonth));
-  const daysInMonth = getDaysInMonth(currentMonth);
+      if (!response.ok) {
+        throw new Error("Failed to update user details.");
+      }
+
+      setNotification("Settings saved successfully!");
+    } catch (error) {
+      console.error("Error updating settings:", error);
+      setNotification("Error updating settings. Please try again.");
+    }
+
+    // Clear notification after 3 seconds
+    setTimeout(() => setNotification(null), 3000);
+  }
 
   return (
-    <aside className="p-4 bg-gray-900 text-gray-300 rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <button 
-          onClick={() => handleYearChange('prev')} 
-          className="text-lg text-gray-400 hover:text-gray-200"
+    <>
+      <div
+        className={`
+          absolute left-1/2 top-full mt-3 transform -translate-x-1/2
+          bg-gray-800 shadow-lg rounded-lg p-4
+          w-[300px] 
+          transition-all duration-300 z-20
+          ${
+            showSettings
+              ? "opacity-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 -translate-y-1 pointer-events-none"
+          }
+        `}
+      >
+        <h2 className="text-xl font-bold text-center mb-4">Account Settings</h2>
+
+        {/* User Name */}
+        <div className="mb-4">
+          <label className="block mb-1 font-semibold text-sm">User Name</label>
+          <input
+            type="text"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            className="w-full p-2 rounded bg-gray-700 border border-gray-600 text-gray-300"
+          />
+        </div>
+
+        {/* Email */}
+        <div className="mb-4">
+          <label className="block mb-1 font-semibold text-sm">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-2 rounded bg-gray-700 border border-gray-600 text-gray-300"
+          />
+        </div>
+
+        {/* Name */}
+        <div className="mb-4">
+          <label className="block mb-1 font-semibold text-sm">Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full p-2 rounded bg-gray-700 border border-gray-600 text-gray-300"
+          />
+        </div>
+
+        {/* Save Changes Button */}
+        <button
+          onClick={handleSaveSettings}
+          className="
+            w-full py-2 mt-2 bg-blue-600
+            text-white font-semibold
+            rounded-full shadow-lg hover:bg-blue-700 transition
+          "
         >
-          {'<<'}
-        </button>
-        <button 
-          onClick={() => handleMonthChange('prev')} 
-          className="text-lg text-gray-400 hover:text-gray-200"
-        >
-          {'<'}
-        </button>
-        <h2 className="text-xl font-bold tracking-wide">
-          {format(currentMonth, "MMMM yyyy")}
-        </h2>
-        <button 
-          onClick={() => handleMonthChange('next')} 
-          className="text-lg text-gray-400 hover:text-gray-200"
-        >
-          {'>'}
-        </button>
-        <button 
-          onClick={() => handleYearChange('next')} 
-          className="text-lg text-gray-400 hover:text-gray-200"
-        >
-          {'>>'}
+          Save
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-2 text-center mb-2">
-        {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
-          <div 
-            key={index} 
-            className="font-semibold text-gray-400 text-sm"
-          >
-            {day}
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-7 gap-2 text-center">
-        {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-          <div key={`empty-${i}`} className="invisible">x</div>
-        ))}
-
-        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => (
-          <button
-            key={day}
-            className={`p-2 w-10 h-10 rounded-md flex items-center justify-center text-sm transition-colors
-              ${
-                selectedDate.getDate() === day &&
-                selectedDate.getMonth() === currentMonth.getMonth() &&
-                selectedDate.getFullYear() === currentMonth.getFullYear()
-                  ? 'bg-blue-500 text-white font-bold'
-                  : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
-              }`}
-            onClick={() => handleDateClick(day)}
-          >
-            {day}
-          </button>
-        ))}
-      </div>
-    </aside>
+      {/* Notification Component */}
+      <Notification message={notification} />
+    </>
   );
 }

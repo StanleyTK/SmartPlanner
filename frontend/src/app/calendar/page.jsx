@@ -1,14 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { startOfWeek, addDays, isSameDay, parseISO, format } from "date-fns";
+import {
+  startOfWeek,
+  addDays,
+  isSameDay,
+  parseISO,
+  format,
+} from "date-fns";
+
 import Navbar from "./components/Navbar";
 import TodoColumns from "./components/TodoColumns";
 import Footer from "./components/Footer";
+import Notification from "./components/Notification";
+import { 
+  fetchTasksForRange,
+  createTask,
+  updateTask as apiUpdateTask,
+  deleteTask as apiDeleteTask,
+} from "./components/TaskApi";  // <-- Import from new file
+
 import "../../styles/globals.css";
 
-export default function Todo() {
+
+export default function Calendar() {
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekDays, setWeekDays] = useState([]);
@@ -16,73 +32,17 @@ export default function Todo() {
   const [isLoading, setIsLoading] = useState(true);
   const [tasks, setTasks] = useState([]);
 
-  // --------------------------------------------------------------------------------
-  // Fetch tasks from the server for the entire 7-day range
-  async function fetchTasksForWeekDays(days) {
-    try {
-      const token = localStorage.getItem("userToken");
-      if (!token) return;
+  // Notification state
+  const [notificationMessage, setNotificationMessage] = useState(null);
 
-      const start_day = format(days[0], "yyyy-MM-dd");
-      const end_day = format(days[6], "yyyy-MM-dd");
-
-      // Call GET-BY-DATE endpoint
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/tasks/get-by-date/`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: token,
-            "Content-Type": "application/json",
-
-          },
-          body: JSON.stringify({
-            start_date: start_day,
-            end_date: end_day,
-          }),
-        }
-      );
-
-      
-      if (!response.ok) {
-        throw new Error("Failed to fetch tasks");
-      }
-      const data = await response.json();
-
-      if (data.tasks) {
-        // Group tasks by which day they belong to
-        const grouped = groupTasksByDay(data.tasks, days);
-        setTasks(grouped);
-      } else {
-        setTasks(days.map(() => []));
-      }
-    } catch (error) {
-      console.error(error);
-      // If an error occurs, just set empty arrays for each day
-      setTasks(weekDays.map(() => []));
-    }
+  function showNotification(message) {
+    setNotificationMessage(message);
+    setTimeout(() => setNotificationMessage(null), 2000);
   }
 
-  // --------------------------------------------------------------------------------
-  // Helper: convert the 'tasks' array from the server into
-  // a 7-element array, one per day in the "weekDays"
-  function groupTasksByDay(allTasks, days) {
-    // Start with 7 empty arrays
-    const result = days.map(() => []);
-    allTasks.forEach((t) => {
-      // parse the date_created
-      const taskDate = parseISO(t.date_created);
-      // figure out which index
-      const idx = days.findIndex((d) => isSameDay(d, taskDate));
-      if (idx !== -1) {
-        result[idx].push(t);
-      }
-    });
-    return result;
-  }
-
-  // --------------------------------------------------------------------------------
-  // On mount, check token or redirect
+  // -----------------------------------------
+  //  On mount, check token or redirect
+  // -----------------------------------------
   useEffect(() => {
     const token = localStorage.getItem("userToken");
     if (!token) {
@@ -93,64 +53,89 @@ export default function Todo() {
     }
   }, [router, selectedDate]);
 
-  // Whenever "weekDays" is updated, fetch tasks for that range
-  useEffect(() => {
-    if (weekDays.length > 0) {
-      fetchTasksForWeekDays(weekDays);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weekDays]);
-
-  // --------------------------------------------------------------------------------
-  // Build the 7-day range based on the "selectedDate"
-  const updateWeekDays = (date) => {
+  // -----------------------------------------
+  //  Build the 7-day array from selectedDate
+  // -----------------------------------------
+  function updateWeekDays(date) {
     const start = startOfWeek(date, { weekStartsOn: 0 }); // Sunday
     const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
     setWeekDays(days);
-  };
+  }
 
-  // --------------------------------------------------------------------------------
-  const handleLogout = () => {
-    localStorage.removeItem("userToken");
-    router.push("/login");
-  };
+  // -----------------------------------------
+  //  Fetch tasks for the given 7 days
+  // -----------------------------------------
+  useEffect(() => {
+    if (weekDays.length > 0) {
+      fetchTasks();
+    }
+  }, [weekDays]);
 
-  // --------------------------------------------------------------------------------
-  // Create a new task on the selected day (POST /tasks/create/)
-  const addTaskToSelectedDay = async ({ title, description }) => {
+  async function fetchTasks() {
     try {
       const token = localStorage.getItem("userToken");
       if (!token) return;
 
-      // We'll store the date in yyyy-MM-dd so the server picks it up
-      const date_created = format(selectedDate, "yyyy-MM-dd");
+      const start_day = format(weekDays[0], "yyyy-MM-dd");
+      const end_day = format(weekDays[6], "yyyy-MM-dd");
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/tasks/create/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token,
-          },
-          body: JSON.stringify({
-            title,
-            description,
-            priority: 2, // default
-            tags: "",     // default
-            date_created, // for the selectedDate
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to create task");
+      const data = await fetchTasksForRange(token, start_day, end_day);
+      if (data.tasks) {
+        const grouped = groupTasksByDay(data.tasks, weekDays);
+        setTasks(grouped);
+      } else {
+        setTasks(weekDays.map(() => []));
       }
+    } catch (error) {
+      console.error(error);
+      // fallback
+      setTasks(weekDays.map(() => []));
+    }
+  }
 
-      const data = await response.json();
-      const newTaskId = data.task_id;
+  // Group tasks by day
+  function groupTasksByDay(allTasks, days) {
+    const result = days.map(() => []);
+    allTasks.forEach((t) => {
+      const taskDate = parseISO(t.date_created);
+      const idx = days.findIndex((d) => isSameDay(d, taskDate));
+      if (idx !== -1) {
+        result[idx].push(t);
+      }
+    });
+    return result;
+  }
 
-      // Insert the new task into our local state
+  // -----------------------------------------
+  //  Log out
+  // -----------------------------------------
+  function handleLogout() {
+    localStorage.removeItem("userToken");
+    router.push("/login");
+  }
+
+  // -----------------------------------------
+  //  Create a new task
+  // -----------------------------------------
+  async function addTaskToSelectedDay({ title, description, priority }) {
+    try {
+      const token = localStorage.getItem("userToken");
+      if (!token) return;
+
+      const date_created = format(selectedDate, "yyyy-MM-dd");
+      const newData = {
+        title,
+        description,
+        priority,
+        tags: "",
+        date_created,
+        is_completed: false,
+      };
+
+      const result = await createTask(token, newData);
+      const newTaskId = result.task_id;
+
+      // Insert into local state
       setTasks((oldTasks) => {
         const dayIndex = weekDays.findIndex((d) => isSameDay(d, selectedDate));
         if (dayIndex === -1) return oldTasks;
@@ -159,62 +144,33 @@ export default function Todo() {
         copy[dayIndex] = [
           ...copy[dayIndex],
           {
+            ...newData,
             id: newTaskId,
-            title,
-            description,
-            priority: 1,
-            tags: "",
-            date_created,
-            is_completed: false,
           },
         ];
         return copy;
       });
+
+      showNotification("Saved");
     } catch (error) {
       console.error(error);
-      // Optionally, show an error toast or message
     }
-  };
+  }
 
-  // --------------------------------------------------------------------------------
-  // Delete a specific task from whichever day is selected (DELETE /tasks/delete/)
-  const deleteTaskFromSelectedDay = async (taskIndex) => {
+  // -----------------------------------------
+  //  Delete a task
+  // -----------------------------------------
+  async function deleteTaskFromSelectedDay(taskIndex) {
     try {
-      // Find the day of the week (0 = Sunday, 6 = Saturday)
-      const dayIndex = selectedDate.getDay(); 
-  
+      const dayIndex = selectedDate.getDay();
       const taskToDelete = tasks[dayIndex][taskIndex];
-  
-      console.log("Task to delete:", taskToDelete);
-      console.log("Tasks array:", tasks);
-      console.log("Selected day index (0=Sunday, 6=Saturday):", dayIndex);
-      console.log("Task index:", taskIndex);
-  
       if (!taskToDelete || !taskToDelete.id) return;
-  
+
       const token = localStorage.getItem("userToken");
       if (!token) return;
-      console.log("Authorization successful");
-  
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/tasks/delete/`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token,
-          },
-          body: JSON.stringify({
-            task_id: taskToDelete.id,
-          }),
-        }
-      );
-  
-      if (!response.ok) {
-        throw new Error("Failed to delete task");
-      }
-  
-      // Remove task from local state if server deletion succeeded
+
+      await apiDeleteTask(token, taskToDelete.id);
+
       setTasks((oldTasks) => {
         const newArr = [...oldTasks];
         const newDayTasks = [...newArr[dayIndex]];
@@ -222,13 +178,49 @@ export default function Todo() {
         newArr[dayIndex] = newDayTasks;
         return newArr;
       });
+
+      showNotification("Saved");
     } catch (error) {
       console.error("Error deleting task:", error);
     }
-  };
-  
-  // --------------------------------------------------------------------------------
-  // Loading spinner
+  }
+
+  // -----------------------------------------
+  //  Update a task
+  // -----------------------------------------
+  async function updateTask(updatedTask) {
+    try {
+      const token = localStorage.getItem("userToken");
+      if (!token) return;
+
+      await apiUpdateTask(token, updatedTask);
+
+      // Reflect in local state
+      setTasks((oldTasks) => {
+        const dayIndex = weekDays.findIndex((d) =>
+          isSameDay(d, parseISO(updatedTask.date_created))
+        );
+        if (dayIndex === -1) return oldTasks;
+
+        const newArr = [...oldTasks];
+        const dayTasks = [...newArr[dayIndex]];
+        const tIndex = dayTasks.findIndex((t) => t.id === updatedTask.id);
+        if (tIndex !== -1) {
+          dayTasks[tIndex] = updatedTask;
+          newArr[dayIndex] = dayTasks;
+        }
+        return newArr;
+      });
+
+      showNotification("Saved");
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  }
+
+  // -----------------------------------------
+  //  Render
+  // -----------------------------------------
   if (isLoading) {
     return (
       <div className="flex h-screen justify-center items-center bg-gray-950 text-gray-300">
@@ -237,8 +229,6 @@ export default function Todo() {
     );
   }
 
-  // --------------------------------------------------------------------------------
-  // Render
   return (
     <div className="flex flex-col min-h-screen bg-gray-950 text-gray-300 overflow-x-hidden">
       {/* Navbar */}
@@ -262,6 +252,7 @@ export default function Todo() {
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
           deleteTaskFromSelectedDay={deleteTaskFromSelectedDay}
+          updateTask={updateTask}
         />
       </div>
 
@@ -269,6 +260,9 @@ export default function Todo() {
       <div className="p-4">
         <Footer />
       </div>
+
+      {/* Notification: “Saved!” */}
+      <Notification message={notificationMessage} />
     </div>
   );
 }
