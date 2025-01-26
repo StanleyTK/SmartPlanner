@@ -1,9 +1,11 @@
+// Navbar.jsx
+
 "use client";
 
 import { useState } from "react";
 import AddTask from "./AddTask";
 import Calendar from "./Calendar";
-import SettingsPopover from "./SettingsPopover";
+import ManageTags from "./ManageTags";
 
 export default function Navbar({
   handleLogout,
@@ -17,6 +19,7 @@ export default function Navbar({
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
+  const [showManageTags, setShowManageTags] = useState(false);
 
   return (
     <div className="relative w-full">
@@ -26,22 +29,19 @@ export default function Navbar({
 
           {/* Calendar */}
           <div
-            className={`
+            className="
               relative inline-block
               overflow-visible
-              
               before:absolute before:-top-10 before:-bottom-10
-              before:-left-10 before:-right-10
-              before:content-[''] before:bg-transparent
-              before:pointer-events-auto before:z-0
-            `}
+              before:-left-10 before:-right-10 before:content-['']
+              before:bg-transparent before:pointer-events-auto before:z-0
+            "
             onMouseEnter={() => setShowCalendar(true)}
             onMouseLeave={() => setShowCalendar(false)}
           >
             <button className="relative z-10 hover:text-gray-400 transition">
               Calendar
             </button>
-            {/* Popover */}
             <div
               className={`
                 absolute left-1/2 top-full mt-3 transform -translate-x-1/2
@@ -70,29 +70,23 @@ export default function Navbar({
             onMouseLeave={() => setShowAddTask(false)}
             onAddTask={addTaskToSelectedDay}
           />
+
+          {/* Manage Tags */}
+          <ManageTags
+            isActive={showManageTags}
+            onMouseEnter={() => setShowManageTags(true)}
+            onMouseLeave={() => setShowManageTags(false)}
+          />
         </div>
 
         <div className="flex items-center space-x-12">
-          {/* Settings */}
-          <div
-            className={`
-              relative inline-block
-              overflow-visible
-
-              /* Optional: enlarge bounding area for Settings too if desired */
-              before:absolute before:-top-20 before:-bottom-20
-              before:-left-20 before:-right-20
-              before:content-[''] before:bg-transparent
-              before:pointer-events-auto before:z-0
-            `}
-            onMouseEnter={() => setShowSettings(true)}
-            onMouseLeave={() => setShowSettings(false)}
+          {/* Filter Tasks */}
+          <button
+            onClick={() => router.push("/filter")}
+            className="text-white-400 hover:text-white-600 transition"
           >
-            <button className="relative z-10 hover:text-gray-400 transition">
-              Settings
-            </button>
-            <SettingsPopover showSettings={showSettings} />
-          </div>
+            Filter Tasks
+          </button>
 
           {/* Log Out */}
           <button

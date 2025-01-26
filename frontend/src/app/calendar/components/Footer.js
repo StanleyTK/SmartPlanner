@@ -16,7 +16,7 @@ export default function Footer() {
       "
     >
       <p className="text-sm">
-        &copy; {new Date().getFullYear()} SmartPlanner. All rights reserved.
+       If you find a bug, please email @stanleykim2003@gmail.com
       </p>
     </footer>
   );

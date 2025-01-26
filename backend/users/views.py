@@ -7,6 +7,18 @@ from rest_framework.authtoken.models import Token
 
 class RegisterView(APIView):
     def post(self, request):
+        """
+        Handles POST requests to create a new user account.
+
+        Validates the request data for the presence of required fields (username,
+        email, password) and hashes the password. Inserts the user into the
+        database and creates an authentication token.
+
+        Returns:
+            Response: A JSON response with the authentication token, or an error
+                message and appropriate HTTP status code if validation fails or
+                an error occurs.
+        """
         data = request.data
         username = data.get('username')
         email = data.get('email')
@@ -38,6 +50,18 @@ class RegisterView(APIView):
 
 class LoginView(APIView):
     def post(self, request):
+        """
+        Handles login requests.
+
+        Validates the request data for the presence of required fields (username,
+        password) and checks the credentials against the database. If the
+        credentials are valid, returns an authentication token.
+
+        Returns:
+            Response: A JSON response with the authentication token, or an error
+                message and appropriate HTTP status code if validation fails or
+                an error occurs.
+        """
         data = request.data
         username = data.get('username')
         password = data.get('password')
@@ -67,6 +91,20 @@ class LoginView(APIView):
 
 class DeleteUserView(APIView):
     def delete(self, request):
+        """
+        Handles DELETE requests to remove a user account and all associated data.
+
+        Validates the request for an authorization token. If the token is valid,
+        retrieves the corresponding user ID and deletes all related records from
+        the database, including tasks, tags, authentication tokens, and the user
+        account itself.
+
+        Returns:
+            Response: A JSON response indicating successful deletion, or an error
+            message and appropriate HTTP status code if validation fails or an
+            error occurs.
+        """
+
         authorization_token = request.headers.get("Authorization")
 
         if not authorization_token:
@@ -79,39 +117,11 @@ class DeleteUserView(APIView):
         except Token.DoesNotExist:
             return Response({'error': 'Invalid or expired token'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Use raw SQL queries to delete the related token first
+        # Use raw SQL queries to delete related records first
         with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM tasks_task WHERE user_id = %s", [user_id])
+            cursor.execute("DELETE FROM tags_tag WHERE user_id = %s", [user_id])
             cursor.execute("DELETE FROM authtoken_token WHERE user_id = %s", [user_id])
             cursor.execute("DELETE FROM users_customuser WHERE id = %s", [user_id])
 
-        return Response({'message': 'User deleted successfully'}, status=status.HTTP_200_OK)
-
-
-class UpdateUserView(APIView):
-    def post(self, request):
-        authorization_token = request.headers.get("Authorization")
-        data = request.data
-
-        if not authorization_token:
-            return Response({'error': 'Authorization token is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            # Fetch the token
-            token = Token.objects.get(key=authorization_token)
-            user_id = token.user_id
-        except Token.DoesNotExist:
-            return Response({'error': 'Invalid or expired token'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Update user details
-        with connection.cursor() as cursor:
-            if 'username' in data:
-                cursor.execute("UPDATE users_customuser SET username = %s WHERE id = %s", [data['username'], user_id])
-            if 'email' in data:
-                cursor.execute("UPDATE users_customuser SET email = %s WHERE id = %s", [data['email'], user_id])
-            if 'name' in data:
-                cursor.execute("UPDATE users_customuser SET name = %s WHERE id = %s", [data['name'], user_id])
-            if 'password' in data:
-                hashed_password = make_password(data['password'])
-                cursor.execute("UPDATE users_customuser SET password = %s WHERE id = %s", [hashed_password, user_id])
-
-        return Response({'message': 'User information updated successfully'}, status=status.HTTP_200_OK)
+        return Response({'message': 'User and all associated data deleted successfully'}, status=status.HTTP_200_OK)

@@ -30,7 +30,7 @@ export default function Home() {
           SmartPlanner
         </h1>
         <p className="text-xl text-gray-400 max-w-xl mx-auto leading-relaxed">
-          A futuristic way to plan your tasks and organize your life with AI-powered assistance.
+          A futuristic way to plan your tasks and organize your life.
         </p>
         <button
           className="relative px-10 py-4 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white text-lg font-bold shadow-lg hover:shadow-2xl transform transition hover:scale-110 duration-300 ease-in-out"

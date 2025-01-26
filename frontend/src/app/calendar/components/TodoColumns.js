@@ -2,13 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { parseISO, format, isSameDay } from "date-fns";
+import { fetchTags } from "./TaskApi"; // We'll fetch available tags
 
-/**
- * Renders columns for each day in `weekDays`. 
- * Shows tasks sorted by priority (descending), then alphabetical.
- * Includes a "Mark Complete" button on the right side of each task.
- * An absolute-positioned popover for details/edit/delete if clicked.
- */
 export default function TodoColumns({
   weekDays,
   tasks,
@@ -28,16 +23,33 @@ export default function TodoColumns({
   const [editDesc, setEditDesc] = useState("");
   const [editPriority, setEditPriority] = useState(1);
 
+  // Tag editing
+  const [availableTags, setAvailableTags] = useState([]);
+  const [editTagId, setEditTagId] = useState(""); // store as string
+
   const popoverRef = useRef(null);
 
   // --------------------------------------------------------------------------
-  // Custom sorting: priority desc => alphabetical
+  // Fetch all user tags once, so we can display them in the edit dropdown
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+    async function loadTags() {
+      try {
+        const data = await fetchTags();
+        setAvailableTags(data.tags || []);
+      } catch (error) {
+        console.error("Failed to fetch tags for editing:", error);
+      }
+    }
+    loadTags();
+  }, []);
+
+  // --------------------------------------------------------------------------
+  // Sorting: priority desc => alphabetical
   // --------------------------------------------------------------------------
   function defaultSort(a, b) {
-    // If you wanted incomplete-first, you'd do that logic here.
-    // For now, we just do priority desc, then alpha:
     if (a.priority !== b.priority) {
-      return b.priority - a.priority;
+      return b.priority - a.priority; // higher priority first
     }
     return a.title.localeCompare(b.title);
   }
@@ -52,7 +64,7 @@ export default function TodoColumns({
       case 2:
         return "bg-yellow-500";
       default:
-        return "bg-green-500"; // Low
+        return "bg-green-500";
     }
   }
 
@@ -65,52 +77,38 @@ export default function TodoColumns({
   // --------------------------------------------------------------------------
   // Handle Task Click -> Show Popover
   // --------------------------------------------------------------------------
-  // Inside handleClickTask():
-function handleClickTask(task, idx, e, day) {
-  setSelectedDate(day);
+  function handleClickTask(task, idx, e, day) {
+    setSelectedDate(day);
 
-  const rect = e.currentTarget.getBoundingClientRect();
-  const viewportWidth = window.innerWidth;
-  
-  // We'll make the popover wider, e.g. 500px
-  const popoverWidth = 500;
-  // Optional: If you want to do vertical positioning logic,
-  // you can also define an approximate popover height.
-  // (e.g., const popoverHeight = 640; // 40rem ~ 640px)
+    const rect = e.currentTarget.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const popoverWidth = 800;
+    const horizontalGap = 20;
+    let side = "right";
 
-  let side = "right";
-  if (rect.right + popoverWidth > viewportWidth) {
-    side = "left";
+    if (rect.right + popoverWidth > viewportWidth) {
+      side = "left";
+    }
+
+    const x =
+      side === "right"
+        ? rect.right + horizontalGap
+        : rect.left - popoverWidth - horizontalGap;
+    const y = rect.top + window.scrollY - 10; // slight offset
+
+    setPopoverPos({ x, y });
+    setPopoverTask(task);
+    setPopoverIndex(idx);
+    setShowPopover(true);
+
+    // Setup edit form (initial values)
+    setIsEditing(false);
+    setEditTitle(task.title || "");
+    setEditDesc(task.description || "");
+    setEditPriority(task.priority || 1);
+    // If the server returns something like `task.tag_id`, store that below:
+    setEditTagId(task.tag_id ? String(task.tag_id) : "");
   }
-
-  // Horizontal gap between the popover and the task
-  const horizontalGap = 10;
-
-  // Calculate the x position
-  const x = 
-    side === "right"
-      ? rect.right + horizontalGap
-      : rect.left - popoverWidth - horizontalGap;
-
-  // Calculate the y position
-  // We'll move the popover up a bit (say, 10px) so it doesn't
-  // directly cover the clicked task. 
-  const verticalOffset = 10;
-
-  // rect.top is where the task sits. Subtract the offset
-  const y = rect.top + window.scrollY - verticalOffset;
-
-  setPopoverPos({ x, y });
-  setPopoverTask(task);
-  setPopoverIndex(idx);
-  setShowPopover(true);
-
-  // setup edit form
-  setIsEditing(false);
-  setEditTitle(task.title);
-  setEditDesc(task.description || "");
-  setEditPriority(task.priority || 1);
-}
 
   // --------------------------------------------------------------------------
   // Close Popover
@@ -137,17 +135,21 @@ function handleClickTask(task, idx, e, day) {
   function handleEditClick() {
     setIsEditing(true);
   }
+
   function handleCancelEdit() {
     setIsEditing(false);
   }
 
   async function handleUpdate() {
     if (!popoverTask) return;
+
     const updatedTask = {
       ...popoverTask,
       title: editTitle,
       description: editDesc,
       priority: editPriority,
+      // Convert selected string to integer, or null if empty
+      tag_id: editTagId ? parseInt(editTagId, 10) : null,
     };
     await updateTask(updatedTask);
     closePopover();
@@ -161,15 +163,15 @@ function handleClickTask(task, idx, e, day) {
       ...task,
       is_completed: !task.is_completed,
     };
-    // Keep popover in sync if open
-    if (showPopover && popoverTask && popoverTask.id === task.id) {
+    // If popover is open & showing this same task, keep in sync
+    if (showPopover && popoverTask?.id === task.id) {
       setPopoverTask(updatedTask);
     }
     await updateTask(updatedTask);
   }
 
   // --------------------------------------------------------------------------
-  // Outside-click detection for popover
+  // Outside-click detection for the popover
   // --------------------------------------------------------------------------
   useEffect(() => {
     if (!showPopover) return;
@@ -226,18 +228,19 @@ function handleClickTask(task, idx, e, day) {
                 </button>
               </div>
 
-              {/* Tasks list */}
+              {/* Tasks List */}
               <div className="flex-1 overflow-y-auto px-4 pb-4">
                 <ul className="space-y-2 text-base">
                   {dayTasks.map((task, taskIndex) => (
                     <li
-                      key={taskIndex}
+                      key={task.id} // Use unique task ID as key
                       className="
                         p-2
                         bg-gray-700
                         rounded
                         flex items-center justify-between
                         hover:bg-gray-600
+                        min-h-[60px] 
                       "
                     >
                       {/* Left side: priority dot + title */}
@@ -254,8 +257,8 @@ function handleClickTask(task, idx, e, day) {
                         {/* Title with line-through if completed */}
                         <span
                           className={`
-                            overflow-hidden text-ellipsis whitespace-nowrap 
-                            flex-1 
+                            overflow-hidden text-ellipsis whitespace-nowrap
+                            flex-1
                             ${task.is_completed ? "line-through text-gray-400" : ""}
                           `}
                           style={{ minWidth: 0 }}
@@ -264,12 +267,12 @@ function handleClickTask(task, idx, e, day) {
                         </span>
                       </div>
 
-                      {/* Button to toggle completion, no shrinking */}
+                      {/* Button to toggle completion */}
                       <button
                         onClick={() => toggleCompletion(task)}
                         className={`
-                          flex-shrink-0 
-                          text-xs px-3 py-1 
+                          flex-shrink-0
+                          text-xs px-3 py-1
                           rounded-md font-semibold ml-2
                           ${
                             task.is_completed
@@ -289,7 +292,7 @@ function handleClickTask(task, idx, e, day) {
         })}
       </div>
 
-      {/* POPOVER (details or edit form) */}
+      {/* Popover (View/Edit) */}
       {showPopover && popoverTask && (
         <div
           ref={popoverRef}
@@ -312,8 +315,8 @@ function handleClickTask(task, idx, e, day) {
           }}
         >
           {!isEditing ? (
+            // VIEW MODE
             <>
-              {/* VIEW MODE */}
               <div className="flex justify-between items-center mb-2">
                 <h2
                   className={`
@@ -331,18 +334,27 @@ function handleClickTask(task, idx, e, day) {
                 </button>
               </div>
 
+              {/* Date */}
               <p className="text-sm text-gray-500 mb-2">
                 {format(parseISO(popoverTask.date_created), "PPPP")}
               </p>
 
-              <p className="text-sm mb-4">
+              {/* Priority */}
+              <p className="text-sm mb-2">
                 <strong>Priority:</strong> {getPriorityLabel(popoverTask.priority)}
               </p>
 
-              {/* 
-                For the description, we ensure line wrapping with
-                whitespace-pre-wrap + break-words 
-              */}
+              {/* Conditionally Render Tag */}
+              {popoverTask.tag_id && popoverTask.tag_name && (
+                <p className="text-sm mb-4 flex items-center">
+                  <strong className="mr-2">Tag:</strong>
+                  <span className="px-2 py-1 bg-blue-600 text-white rounded-full text-xs">
+                    {popoverTask.tag_name}
+                  </span>
+                </p>
+              )}
+
+              {/* Description */}
               <p className="text-sm whitespace-pre-wrap break-words mb-4">
                 {popoverTask.description || "No description."}
               </p>
@@ -369,8 +381,8 @@ function handleClickTask(task, idx, e, day) {
               </div>
             </>
           ) : (
+            // EDIT MODE
             <>
-              {/* EDIT MODE */}
               <div className="flex justify-between items-center mb-2">
                 <h2 className="text-lg font-semibold text-gray-100">Edit Task</h2>
                 <button
@@ -381,6 +393,7 @@ function handleClickTask(task, idx, e, day) {
                 </button>
               </div>
 
+              {/* Title */}
               <label className="block mb-1 font-semibold text-sm text-gray-400">
                 Title (max 50 characters)
               </label>
@@ -392,6 +405,7 @@ function handleClickTask(task, idx, e, day) {
                 className="w-full p-2 mb-3 rounded bg-gray-800 text-gray-300 border border-gray-600"
               />
 
+              {/* Description */}
               <label className="block mb-1 font-semibold text-sm text-gray-400">
                 Description
               </label>
@@ -401,6 +415,7 @@ function handleClickTask(task, idx, e, day) {
                 className="w-full p-2 h-20 mb-3 rounded bg-gray-800 text-gray-300 border border-gray-600"
               />
 
+              {/* Priority */}
               <label className="block mb-1 font-semibold text-sm text-gray-400">
                 Priority
               </label>
@@ -414,6 +429,24 @@ function handleClickTask(task, idx, e, day) {
                 <option value={3}>High</option>
               </select>
 
+              {/* Tag Dropdown */}
+              <label className="block mb-1 font-semibold text-sm text-gray-400">
+                Tag
+              </label>
+              <select
+                value={editTagId}
+                onChange={(e) => setEditTagId(e.target.value)}
+                className="w-full p-2 mb-3 rounded bg-gray-800 text-gray-300 border border-gray-600"
+              >
+                <option value="">None</option>
+                {availableTags.map((tag) => (
+                  <option key={tag.id} value={String(tag.id)}>
+                    {tag.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Buttons */}
               <div className="flex justify-end space-x-4">
                 <button
                   onClick={handleUpdate}

@@ -14,15 +14,14 @@ import Navbar from "./components/Navbar";
 import TodoColumns from "./components/TodoColumns";
 import Footer from "./components/Footer";
 import Notification from "./components/Notification";
-import { 
+import {
   fetchTasksForRange,
   createTask,
   updateTask as apiUpdateTask,
   deleteTask as apiDeleteTask,
-} from "./components/TaskApi";  // <-- Import from new file
+} from "./components/TaskApi";
 
 import "../../styles/globals.css";
-
 
 export default function Calendar() {
   const router = useRouter();
@@ -32,16 +31,15 @@ export default function Calendar() {
   const [isLoading, setIsLoading] = useState(true);
   const [tasks, setTasks] = useState([]);
 
-  // Notification state
+  // Notification
   const [notificationMessage, setNotificationMessage] = useState(null);
-
   function showNotification(message) {
     setNotificationMessage(message);
     setTimeout(() => setNotificationMessage(null), 2000);
   }
 
   // -----------------------------------------
-  //  On mount, check token or redirect
+  // On mount -> check token or redirect
   // -----------------------------------------
   useEffect(() => {
     const token = localStorage.getItem("userToken");
@@ -54,16 +52,16 @@ export default function Calendar() {
   }, [router, selectedDate]);
 
   // -----------------------------------------
-  //  Build the 7-day array from selectedDate
+  // Build the 7-day array from selectedDate
   // -----------------------------------------
   function updateWeekDays(date) {
-    const start = startOfWeek(date, { weekStartsOn: 0 }); // Sunday
+    const start = startOfWeek(date, { weekStartsOn: 0 }); // Sunday start
     const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
     setWeekDays(days);
   }
 
   // -----------------------------------------
-  //  Fetch tasks for the given 7 days
+  // Fetch tasks for the 7 days
   // -----------------------------------------
   useEffect(() => {
     if (weekDays.length > 0) {
@@ -88,12 +86,10 @@ export default function Calendar() {
       }
     } catch (error) {
       console.error(error);
-      // fallback
       setTasks(weekDays.map(() => []));
     }
   }
 
-  // Group tasks by day
   function groupTasksByDay(allTasks, days) {
     const result = days.map(() => []);
     allTasks.forEach((t) => {
@@ -117,7 +113,7 @@ export default function Calendar() {
   // -----------------------------------------
   //  Create a new task
   // -----------------------------------------
-  async function addTaskToSelectedDay({ title, description, priority }) {
+  async function addTaskToSelectedDay({ title, description, priority, tag_id }) {
     try {
       const token = localStorage.getItem("userToken");
       if (!token) return;
@@ -127,17 +123,19 @@ export default function Calendar() {
         title,
         description,
         priority,
-        tags: "",
+        tag_id, // <--- pass as "tag_id"
         date_created,
         is_completed: false,
       };
 
       const result = await createTask(token, newData);
-      const newTaskId = result.task_id;
+      const newTaskId = result.task_id; // returned from server
 
       // Insert into local state
       setTasks((oldTasks) => {
-        const dayIndex = weekDays.findIndex((d) => isSameDay(d, selectedDate));
+        const dayIndex = weekDays.findIndex((d) =>
+          isSameDay(d, selectedDate)
+        );
         if (dayIndex === -1) return oldTasks;
 
         const copy = [...oldTasks];
@@ -151,9 +149,9 @@ export default function Calendar() {
         return copy;
       });
 
-      showNotification("Saved");
+      showNotification("Task added!");
     } catch (error) {
-      console.error(error);
+      console.error("Error creating task:", error);
     }
   }
 
@@ -164,7 +162,7 @@ export default function Calendar() {
     try {
       const dayIndex = selectedDate.getDay();
       const taskToDelete = tasks[dayIndex][taskIndex];
-      if (!taskToDelete || !taskToDelete.id) return;
+      if (!taskToDelete?.id) return;
 
       const token = localStorage.getItem("userToken");
       if (!token) return;
@@ -179,7 +177,7 @@ export default function Calendar() {
         return newArr;
       });
 
-      showNotification("Saved");
+      showNotification("Task deleted!");
     } catch (error) {
       console.error("Error deleting task:", error);
     }
@@ -195,31 +193,31 @@ export default function Calendar() {
 
       await apiUpdateTask(token, updatedTask);
 
-      // Reflect in local state
+      // Reflect changes in local state
       setTasks((oldTasks) => {
         const dayIndex = weekDays.findIndex((d) =>
           isSameDay(d, parseISO(updatedTask.date_created))
         );
         if (dayIndex === -1) return oldTasks;
 
-        const newArr = [...oldTasks];
-        const dayTasks = [...newArr[dayIndex]];
+        const copy = [...oldTasks];
+        const dayTasks = [...copy[dayIndex]];
         const tIndex = dayTasks.findIndex((t) => t.id === updatedTask.id);
         if (tIndex !== -1) {
           dayTasks[tIndex] = updatedTask;
-          newArr[dayIndex] = dayTasks;
+          copy[dayIndex] = dayTasks;
         }
-        return newArr;
+        return copy;
       });
 
-      showNotification("Saved");
+      showNotification("Task updated!");
     } catch (error) {
       console.error("Error updating task:", error);
     }
   }
 
   // -----------------------------------------
-  //  Render
+  // Render
   // -----------------------------------------
   if (isLoading) {
     return (
@@ -244,7 +242,7 @@ export default function Calendar() {
         />
       </div>
 
-      {/* Main content area (columns) */}
+      {/* Main content (columns) */}
       <div className="flex-grow px-8">
         <TodoColumns
           weekDays={weekDays}
@@ -261,7 +259,7 @@ export default function Calendar() {
         <Footer />
       </div>
 
-      {/* Notification: “Saved!” */}
+      {/* Notification */}
       <Notification message={notificationMessage} />
     </div>
   );

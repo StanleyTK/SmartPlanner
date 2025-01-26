@@ -19,6 +19,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('api/users/', include('users.urls')),
-    path('api/tasks/', include('tasks.urls'))
+    path('api/tasks/', include('tasks.urls')),
+    path('api/tags/', include('tags.urls'))
 ]
 
