@@ -25,11 +25,15 @@ jobs:
           cd frontend
           npm install
 
+      - name: Print environment variable
+        run: echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}"
+
       - name: Build project
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: |
           cd frontend
+          echo "Building with NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL"
           npm run predeploy
 
       - name: Upload artifact
