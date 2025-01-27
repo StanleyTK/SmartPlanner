@@ -14,15 +14,15 @@ export default function Signup() {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(true); // Loading state
+  const [loading, setLoading] = useState(true);
 
   // Check for token on component mount
   useEffect(() => {
     const token = localStorage.getItem("userToken");
     if (token) {
-      router.push("/calendar"); // Redirect to /calendar if token exists
+      router.push("/calendar");
     } else {
-      setLoading(false); // Stop loading once check is complete
+      setLoading(false);
     }
   }, [router]);
 

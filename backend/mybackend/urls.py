@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('api/users/', include('users.urls')),  # Adjust the path to your app's location
+    path('api/users/', include('users.urls')),
+    path('api/tasks/', include('tasks.urls')),
+    path('api/tags/', include('tags.urls'))
 ]
 

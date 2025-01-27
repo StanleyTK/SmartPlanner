@@ -1,19 +1,4 @@
-version: '3.9'
-
 services:
-  db:
-    image: postgres:13
-    container_name: postgres_container
-    environment:
-      POSTGRES_DB: tododb
-      POSTGRES_USER: stanley
-      POSTGRES_PASSWORD: sevendiamonds
-    ports:
-      - "5433:5432"
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-    restart: always
-
   web:
     build: .
     container_name: django_app
@@ -22,17 +7,12 @@ services:
       - .:/app
     ports:
       - "8000:8000"
-    depends_on:
-      - db
     environment:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
-
-
-      
-
-volumes:
-  pg_data:
+    env_file:
+      - .env
+    restart: always

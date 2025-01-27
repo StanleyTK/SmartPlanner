@@ -11,7 +11,7 @@ export default function Login() {
     password: "",
   });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true); // State to track loading
+  const [loading, setLoading] = useState(true);
 
   // Check for token on component mount
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function Login() {
     if (token) {
       router.push("/calendar");
     } else {
-      setLoading(false); // Stop loading once check is complete
+      setLoading(false);
     }
   }, [router]);
 
@@ -32,7 +32,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Show loading while logging in
+    setLoading(true);
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/login/`, {
