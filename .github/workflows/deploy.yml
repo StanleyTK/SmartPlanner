@@ -1,7 +1,7 @@
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:  # Allows manual runs if needed
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -26,6 +26,8 @@ jobs:
           npm install
 
       - name: Build project
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: |
           cd frontend
           npm run predeploy
