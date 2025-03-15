@@ -14,20 +14,6 @@ class CreateTaskView(APIView):
     def post(self, request):
         """
         Handles POST requests to create a new task for the authenticated user.
-
-        Validates the authorization token and extracts the user ID associated with 
-        the token. Retrieves task details from the request data, including title, 
-        description, priority, tag ID, and date created. Ensures that the title 
-        and date created fields are provided. If a tag ID is specified, verifies 
-        its existence and ownership by the user.
-
-        Inserts a new task record into the database with the provided details. 
-        Returns a success message and the task ID upon successful creation.
-
-        Returns:
-            Response: A JSON response with a success message and created task ID, 
-                    or an error message and appropriate HTTP status code if 
-                    validation fails or an error occurs.
         """
 
         authorization_token = request.headers.get("Authorization")
@@ -73,19 +59,6 @@ class UpdateTaskView(APIView):
     def post(self, request):
         """
         Handles POST requests to update a task for the authenticated user.
-
-        Validates the authorization token and extracts the user ID associated with 
-        the token. Retrieves the task ID from the request data and verifies the task 
-        exists and is owned by the user.
-
-        Updates the task record in the database with the provided details, including 
-        title, description, priority, tag ID, and is_completed status. Returns a 
-        success message upon successful update.
-
-        Returns:
-            Response: A JSON response with a success message, or an error message and 
-                    appropriate HTTP status code if validation fails or an error 
-                    occurs.
         """
         authorization_token = request.headers.get("Authorization")
         data = request.data
@@ -152,17 +125,6 @@ class DeleteTaskView(APIView):
     def delete(self, request):
         """
         Handles DELETE requests to delete a task for the authenticated user.
-
-        Validates the authorization token and extracts the user ID associated with 
-        the token. Retrieves the task ID from the request data and verifies the task 
-        exists and is owned by the user.
-
-        Deletes the task record from the database.
-
-        Returns:
-            Response: A JSON response with a success message, or an error message and 
-                    appropriate HTTP status code if validation fails or an error 
-                    occurs.
         """
         authorization_token = request.headers.get("Authorization")
         task_id = request.data.get("task_id")
@@ -192,16 +154,6 @@ class GetTasksView(APIView):
     def get(self, request):
         """
         Handles GET requests to retrieve all tasks for the authenticated user.
-
-        Validates the authorization token and extracts the user ID associated with 
-        the token. Fetches all tasks belonging to the user and joins with tags 
-        to include tag details. Constructs a list of tasks with their details 
-        and returns it in the response.
-
-        Returns:
-            Response: A JSON response with the list of tasks and their details, 
-                      or an error message and appropriate HTTP status code if 
-                      validation fails or an error occurs.
         """
 
         authorization_token = request.headers.get("Authorization")
@@ -247,16 +199,7 @@ class GetTasksByDateView(APIView):
         """
         Handles POST requests to retrieve tasks for the authenticated user by date range.
 
-        Validates the authorization token and extracts the user ID associated with 
-        the token. Retrieves the start and end dates from the request data and verifies 
-        they are valid. Fetches all tasks belonging to the user and within the date 
-        range, joins with tags to include tag details. Constructs a list of tasks with 
-        their details and returns it in the response.
 
-        Returns:
-            Response: A JSON response with the list of tasks and their details, 
-                      or an error message and appropriate HTTP status code if 
-                      validation fails or an error occurs.
         """
         authorization_token = request.headers.get("Authorization")
 
@@ -309,18 +252,6 @@ class FilterTasksView(APIView):
         """
         Handles POST requests to filter tasks for the authenticated user based on 
         criteria.
-
-        Validates the authorization token and extracts the user ID associated with 
-        the token. Retrieves the filter criteria from the request data, including 
-        tags, start and end date, completed status, and priority. Constructs a 
-        database query using the criteria and executes it to retrieve the filtered 
-        tasks. Constructs a list of tasks with their details and returns it in the 
-        response.
-
-        Returns:
-            Response: A JSON response with the list of filtered tasks and their 
-                      details, or an error message and appropriate HTTP status 
-                      code if validation fails or an error occurs.
         """
         authorization_token = request.headers.get("Authorization")
         
