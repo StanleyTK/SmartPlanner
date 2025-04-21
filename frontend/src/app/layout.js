@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'SmartPlanner',
-  logo: '/logo.png',  // Correct relative path for Next.js public folder
+  logo: '/logo.png', 
 };
 
 export default function RootLayout({ children }) {

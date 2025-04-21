@@ -35,6 +35,7 @@ export default function Login() {
     setLoading(true);
 
     try {
+      
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/login/`, {
         method: "POST",
         headers: {
@@ -45,9 +46,11 @@ export default function Login() {
           password: formData.password,
         }),
       });
+      console.log("here");
 
       if (response.ok) {
         const data = await response.json();
+        console.log(data);
         localStorage.setItem("userToken", data.token); // Assuming the API returns a token
         router.push("/calendar"); // Redirect to the calendar page on successful login
       } else {
